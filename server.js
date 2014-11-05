@@ -54,7 +54,12 @@ var showSchema = new mongoose.Schema({
 var userSchema = new mongoose.Schema({
   email: { type: String, unique: true },
   password: String,
-  showsSubscribed: [String],
+  showsSubscribed:[{
+      showId: Number,
+      toEmail: Boolean,
+      emailDay: Number,
+      emailHour: Number
+  }]
 });
 
 userSchema.pre('save', function(next) {
@@ -96,7 +101,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 
-app.use(express.static(path.join(__dirname, 'public'),{ maxAge: 86400000 }));
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(function(req, res, next) {
   if (req.user) {
@@ -133,7 +138,18 @@ function ensureAuthenticated(req, res, next) {
   else res.send(401);
 }
 
+agenda.define('Send Email Alert', function(job, done) {
+  User.findOne({
+
+  });
+});
+
+
+
 agenda.define('send email alert', function(job, done) {
+  //find current user
+  //email
+
   Show.findOne({ name: job.attrs.data }).populate('subscribers').exec(function(err, show) {
     var emails = show.subscribers.map(function(user) {
       return user.email;
@@ -144,12 +160,12 @@ agenda.define('send email alert', function(job, done) {
     })[0];
 
     var smtpTransport = nodemailer.createTransport('SMTP', {
-      service: 'SendGrid',
-      auth: { user: 'hslogin', pass: 'hspassword00' }
+      service: 'gmail',
+      auth: { user: 'lucaschiu2', pass: 'sword1' }
     });
 
     var mailOptions = {
-      from: 'Fred Foo ✔ <foo@blurdybloop.com>',
+      from: 'Lucas Chiu ✔ <Lucaschiu2@gmail.com>',
       to: emails.join(','),
       subject: show.name + ' is starting soon!',
       text: show.name + ' starts in less than 2 hours on ' + show.network + '.\n\n' +
@@ -195,10 +211,22 @@ app.get('/api/logout', function(req, res, next) {
   res.send(200);
 });
 
+
+
+
+
 app.post('/api/subscribe', ensureAuthenticated, function(req, res, next) {
   Show.findById(req.body.showId, function(err, show) {
     if (err) return next(err);
     show.subscribers.push(req.user.id);
+    User.findById(req.user.id, function(err,user) {
+      if (err) return next(err);
+      user.showsSubscribed.push({showId:show.id, toEmail:false, daysBefore:0, hoursBefore:0});
+      user.save(function(err) {
+        if (err) return next (err);
+        res.send(200);
+      });
+    });
     show.save(function(err) {
       if (err) return next(err);
       res.send(200);
@@ -211,12 +239,42 @@ app.post('/api/unsubscribe', ensureAuthenticated, function(req, res, next) {
     if (err) return next(err);
     var index = show.subscribers.indexOf(req.user.id);
     show.subscribers.splice(index, 1);
+
+    User.findById(req.user.id, function(err,user) {
+      if (err) return next(err);
+      var indexUser = user.showsSubscribed.indexOf(req.user.id);
+      user.showsSubscribed.splice(indexUser, 1);
+      user.save(function(err) {
+        if (err) return next (err);
+        res.send(200);
+      });
+    });
+
     show.save(function(err) {
       if (err) return next(err);
       res.send(200);
     });
   });
 });
+
+app.get('/api/listShows', ensureAuthenticated, function(req, res,next) {
+  var query = Show.find();
+  query.where({ subscribers: req.user.id });
+  query.exec(function(err, shows) {
+      if (err) return next (err);
+      res.send(shows);
+  });
+
+});
+
+function getShow(showId,next) {
+
+  Show.findById(showId, function(err, show) {
+          if (err) return next(err);
+          return show;
+  });
+
+}
 
 app.get('/api/shows', function(req, res, next) {
   var query = Show.find();

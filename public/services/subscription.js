@@ -1,11 +1,11 @@
 angular.module('MyApp')
   .factory('Subscription', ['$http', function($http) {
     return {
-      subscribe: function(show, user) {
-        return $http.post('/api/subscribe', { showId: show._id });
+      emailSubscribe: function(showId, dayNumber, hourNumber, user) {
+        return $http.post('/api/emailSubscribe', { showId: showId, toEmail:true, emailDay: dayNumber, emailHour: hourNumber});
       },
-      unsubscribe: function(show, user) {
-        return $http.post('/api/unsubscribe', { showId: show._id });
+      emailUnsubscribe: function(showId, user) {
+        return $http.post('/api/emailUnsubscribe', { showId: showId });
       }
     };
   }]);

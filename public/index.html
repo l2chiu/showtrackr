@@ -18,6 +18,7 @@
 		<script src="vendor/angular-route.js"></script>
 		<script src="vendor/angular-cookies.js"></script>
 		<script src="vendor/moment.min.js"></script>
+        <script src="vendor/ng-lodash.min.js"></script>
 
         <script src="app.js"></script>
 		<script src="controllers/main.js"></script>
@@ -26,6 +27,7 @@
         <script src="controllers/navbar.js"></script>
         <script src="controllers/login.js"></script>
         <script src="controllers/signup.js"></script>
+        <script src="controllers/listShows.js"></script>
         
         <!-- No error when Signing up for existing users --> 
 
@@ -34,8 +36,12 @@
         <script src="services/show.js"></script>
         <script src="services/subscription.js"></script>
         <script src="services/auth.js"></script>
+        <script src="services/list.js"></script>
 
         <script src="filters/fromNow.js"></script>
+        <script src="filters/numberFixedLength.js"></script>
+        <script src="filters/range.js"></script>
+        <script src="filters/getDateString.js"></script>
 
 
     <div ng-controller="NavbarCtrl" class="navbar navbar-default navbar-static-top" role="navigation" bs-navbar>  
@@ -53,6 +59,7 @@
             <li data-match-route="/signup"><a href="/signup">Sign up</a></li>
         </ul>
         <ul class="nav navbar-nav pull-right" ng-if="currentUser">
+            <li data-match-route="/listShows"><a href="/listShows">My Shows</a></li>
             <li class="navbar-text" ng-bind="currentUser.email"></li>
             <li><a href="javascript:void(0)" ng-click="logout()">Logout</a></li>
         </ul>

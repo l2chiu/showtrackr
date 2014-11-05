@@ -1,4 +1,4 @@
-angular.module('MyApp', ['ngResource', 'ngMessages', 'ngRoute', 'mgcrea.ngStrap', 'ngCookies'])
+angular.module('MyApp', ['ngResource', 'ngMessages', 'ngRoute', 'mgcrea.ngStrap', 'ngCookies','ngLodash'])
   .config(function ($routeProvider, $locationProvider) {
     $locationProvider.html5Mode(true);
 
@@ -23,9 +23,9 @@ angular.module('MyApp', ['ngResource', 'ngMessages', 'ngRoute', 'mgcrea.ngStrap'
         templateUrl: 'views/add.html',
         controller: 'AddCtrl'
       })
-      .when('/subscriptions', {
-        templateUrl: 'views/subscriptions.html',
-        controller: 'SubscriptionsCtrl'
+      .when('/listShows', {
+        templateUrl: 'views/listShows.html',
+        controller: 'ListShowsCtrl'
       })
       .otherwise({
         redirectTo: '/'

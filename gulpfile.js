@@ -18,7 +18,8 @@ gulp.task('sass', function() {
             'public/views/detail.html',
             'public/views/home.html',
             'public/views/login.html',
-            'public/views/signup.html'
+            'public/views/signup.html',
+            'public/views/listShows.html'
         ]
     }))
     .pipe(csso())
