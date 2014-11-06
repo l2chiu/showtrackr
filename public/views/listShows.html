@@ -1,0 +1,94 @@
+<div class="container panel-default">
+  <div class="panel-heading" style="font-size: 140%;">My Shows
+  </div>
+  <div class="panel panel-default" ng-repeat="show in shows as filteredShows">
+    <div class="panel-body" >
+      <div class="media">
+        <div class="pull-left">
+          {{ setShow($index) }}
+          {{ setNextEpisode() }}
+          <a href="/shows/{{show._id}}">
+            <img class="media-object img-rounded" ng-src="{{show.poster}}">
+          </a>
+          <div class="text-center" ng-if="currentUser">
+            <div ng-show="!isSubscribed()">
+              <button ng-click="subscribe($index)" class="btn btn-block btn-success">
+                <span class="glyphicon glyphicon-plus"></span> Subscribe
+              </button>
+            </div>
+            <div ng-show="isSubscribed()">
+              <button ng-click="unsubscribe($index)" class="btn btn-block btn-danger">
+                <span class="glyphicon glyphicon-minus"></span> Unsubscribe
+              </button>
+            </div>
+            <div ng-show="shouldEmail($index)">
+              <button ng-click="dontEmail($index)" class="btn btn-block btn-warning">
+                <span class="glyphicon glyphicon-minus"></span> Don't Email Me
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="media-body">
+          <h2 class="media-heading">
+            {{show.name}}
+            <span class="pull-right text-danger">{{show.rating}}</span>
+          </h2>
+          <h4 ng-show="show.status === 'Continuing'">
+            <span class="glyphicon glyphicon-calendar text-danger"></span>
+            {{show.airsDayOfWeek}}s <em>{{show.airsTime}}</em> on
+            {{show.network}}
+          </h4>
+          <h4 ng-show="show.status === 'Ended'">
+            Status: <span class="text-danger">Ended</span>
+          </h4>
+
+          <p>The previous episode <b>S{{ prevEps.season | numberFixedLength:2 }}E{{prevEps.episodeNumber | numberFixedLength:2 }}: {{prevEps.episodeName}}</b> premiered on <b>{{ prevEps.firstAired| getDateString:show.airsTime | date:'EEEE, MMMM dd, yyyy hh:mma' }}.</b>
+            <br/><i>-{{ prevEps.firstAired | getDateString:show.airsTime | fromNow }}</i>
+            <br/>
+            The next episode <b>S{{ nextEps.season | numberFixedLength:2 }}E{{nextEps.episodeNumber | numberFixedLength:2 }}: {{nextEps.episodeName}}</b> will premiere on <b>{{ nextEps.firstAired| getDateString:show.airsTime | date:'EEEE, MMMM dd, yyyy hh:mma' }}.</b>
+            <br/><i>-{{ nextEps.firstAired| getDateString:show.airsTime  | fromNow }}</i>
+          </p>
+          <div class="center-form panel">
+            <div ng-show="showEmailButton[$index] && !shouldEmail($index)">
+              <p>Please click on the button below if you would like to receive an email reminder every week before the next episode airs on TV.</p>
+              <button ng-click="emailClicked($index)" class="btn btn-block btn-success">
+                <span class="glyphicon glyphicon-plus"></span> Email Me
+              </button>
+            </div>
+            <div>
+              <form method="post" ng-submit="emailMe()" name="emailForm" class="center-form panel" ng-show="showEmailForm[$index]">
+                <div class="panel-body">
+                  <h2 class="text-center">Email Me</h2>
+
+                  <div class="form-group">
+                    <input class="form-control input-lg" type="email" id="email"
+                           name="email" ng-model="email" placeholder="Email" required readonly>
+                  </div>
+                  <div class="form-group">
+                    <select name="dayControl" class="form-control input-lg text-center" ng-model="chosenDay[$index]" ng-options="day.label for day in days">
+                      <option value="">-- Choose Days --</option>
+                    </select>
+                    <select name="timeControl" class="form-control input-lg text-center" ng-model="chosenTime[$index]" ng-options="time.label for time in times">
+                      <option value="">-- Choose Time --</option>
+                    </select>
+                  </div>
+                  <div ng-if="chosenDay[$index] && chosenTime[$index]">Will send reminder email every <b>{{ chosenDay[$index].label }}</b> at <b>{{ chosenTime[$index].label }}</b> before each episode.</div>
+                  <button ng-click="saveClicked($index)" ng-disabled="!chosenDay[$index] || !chosenTime[$index]" class="btn btn-block btn-primary">Save
+                  </button>
+                  <button ng-click="cancelClicked($index)" class="btn btn-block btn-danger">Cancel
+                  </button>
+                </div>
+              </form>
+              <div ng-show="showEmailMessage[$index] || shouldEmail(index)">Will send reminder email every <b>{{ chosenDay[$index].label }}</b> at <b>{{ chosenTime[$index].label }}</b> before each episode.
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+</div>
