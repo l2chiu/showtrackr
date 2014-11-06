@@ -1,5 +1,5 @@
 angular.module('MyApp')
-    .controller('ListShowsCtrl', ['$scope', '$rootScope', 'List', 'Subscription', 'EmailSubscription', 'lodash', function($scope, $rootScope, List, Subscription, EmailSubscription, lodash) {
+    .controller('ListShowsCtrl', ['$scope', '$rootScope', 'List', 'Subscription', 'EmailSubscription', 'lodash','$filter', function($scope, $rootScope, List, Subscription, EmailSubscription, lodash, $filter) {
 
         $scope.shows = List.query(function() {
             //Initialize Display logic arrays
@@ -73,25 +73,10 @@ angular.module('MyApp')
 
         $scope.setNextEpisode = function() {
             $scope.recentEps = $scope.show.episodes.filter(function(episode) {
-                var theDate = new Date(episode.firstAired);
-                var date = new Date(theDate.getTime() + theDate.getTimezoneOffset() * 60000)
-
-                var hour = Number($scope.show.airsTime.split(":")[0]);
-                var minute = Number($scope.show.airsTime.split(":")[1].split(" ")[0]);
-                var pm = $scope.show.airsTime.split(" ")[1];
-
-                if(pm==="pm" || pm === "PM")
-                {
-                    hour +=12;
-                }
-
-                date.setHours(hour);
-                date.setMinutes(minute);
-
+                var date = $filter('getDateString')(episode.firstAired,$scope.show.airsTime);
                 var date2 = new Date();
                 return date > date2 ;
             });
-            
             $scope.nextEps = $scope.recentEps[0];
             $scope.nextNextEps = $scope.recentEps[1];
             var indexShow = $scope.show.episodes.indexOf($scope.nextEps);
@@ -136,7 +121,8 @@ angular.module('MyApp')
             $scope.showDontEmail[idx] = true;
             var alertDayNumber = $scope.chosenDay[idx].value;
             var alertHourNumber = $scope.chosenTime[idx].value;
-
+            /*
+            //FIX AIR DATE
             var airDate = $scope.nextDate[idx];
             var airDayNumber = airDate.getDay();
             var airHourNumber = airDate.getHours();
@@ -167,6 +153,14 @@ angular.module('MyApp')
                 skip = 1;
             }
             alert("Time to alert before now, alert next week. "+alertDate);
+            */
+            EmailSubscription.emailSubscribe($scope.filteredShows[idx]._id,alertDayNumber,alertHourNumber)
+                .success(function() {
+                    var showSubscribed = lodash.find($rootScope.currentUser.showsSubscribed, { 'showId': $scope.filteredShows[idx]._id });
+                    showSubscribed.toEmail = true;
+                    showSubscribed.emailDay = alertDayNumber;
+                    showSubscribed.emailHour = alertHourNumber;
+            });
 
         };
 
@@ -178,8 +172,8 @@ angular.module('MyApp')
         };
 
         $scope.shouldEmail = function(idx) {
-            return $scope.showDontEmail[idx];
-            //return lodash.find($rootScope.currentUser.showsSubscribed, { 'showId': $scope.show._id }).toEmail;
+            //return $scope.showDontEmail[idx];
+            return lodash.find($rootScope.currentUser.showsSubscribed, { 'showId': $scope.show._id }).toEmail;
             //implement code with DB, problem with index using currentShow
         };
 

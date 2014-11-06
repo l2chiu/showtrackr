@@ -18,6 +18,7 @@ var session = require('express-session');
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 
+var lodash = require('lodash');
 
 var agenda = require('agenda')({ db: { address: 'localhost:27017/test' } });
 var sugar = require('sugar');
@@ -219,11 +220,19 @@ app.get('/api/logout', function(req, res, next) {
 app.post('/api/emailSubscribe', ensureAuthenticated, function(req, res, next) {
   User.findById(req.user.id, function (err,user) {
     if (err) return next(err);
-    user.showsSubscribed.findById(req.body.showId, function (err,showSubscribed) {
-      showSubscribed.toEmail = true;
-      showSubscribed.emailDay = req.body.emailDay;
-      showSubscribed.emailHour = req.body.emailHour;
-    });
+    console.log(req.body.showId);
+
+
+
+    var showSubscribed = lodash.find(user.showsSubscribed, { 'showId': req.body.showId });
+    showSubscribed.toEmail = true;
+    showSubscribed.emailDay = req.body.emailDay;
+    showSubscribed.emailHour = req.body.emailHour;
+    showSubscribed.save();
+
+    console.log(showSubscribed.toEmail);
+    console.log(showSubscribed.emailHour);
+    console.log(showSubscribed.emailDay);
 
     user.save(function(err) {
       if(err) return next(err);
@@ -233,22 +242,6 @@ app.post('/api/emailSubscribe', ensureAuthenticated, function(req, res, next) {
 
 });
 
-app.post('/api/emailSubscribe', ensureAuthenticated, function(req, res, next) {
-  User.findById(req.user.id, function (err,user) {
-    if (err) return next(err);
-    user.showsSubscribed.findById(req.body.showId, function (err,showSubscribed) {
-      showSubscribed.toEmail = true;
-      showSubscribed.emailDay = req.body.emailDay;
-      showSubscribed.emailHour = req.body.emailHour;
-    });
-
-    user.save(function(err) {
-      if(err) return next(err);
-      res.send(200);
-    });
-  });
-
-});
 
 app.post('/api/subscribe', ensureAuthenticated, function(req, res, next) {
   Show.findById(req.body.showId, function(err, show) {
