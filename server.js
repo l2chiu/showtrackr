@@ -215,13 +215,48 @@ app.get('/api/logout', function(req, res, next) {
 
 
 
+
+app.post('/api/emailSubscribe', ensureAuthenticated, function(req, res, next) {
+  User.findById(req.user.id, function (err,user) {
+    if (err) return next(err);
+    user.showsSubscribed.findById(req.body.showId, function (err,showSubscribed) {
+      showSubscribed.toEmail = true;
+      showSubscribed.emailDay = req.body.emailDay;
+      showSubscribed.emailHour = req.body.emailHour;
+    });
+
+    user.save(function(err) {
+      if(err) return next(err);
+      res.send(200);
+    });
+  });
+
+});
+
+app.post('/api/emailSubscribe', ensureAuthenticated, function(req, res, next) {
+  User.findById(req.user.id, function (err,user) {
+    if (err) return next(err);
+    user.showsSubscribed.findById(req.body.showId, function (err,showSubscribed) {
+      showSubscribed.toEmail = true;
+      showSubscribed.emailDay = req.body.emailDay;
+      showSubscribed.emailHour = req.body.emailHour;
+    });
+
+    user.save(function(err) {
+      if(err) return next(err);
+      res.send(200);
+    });
+  });
+
+});
+
 app.post('/api/subscribe', ensureAuthenticated, function(req, res, next) {
   Show.findById(req.body.showId, function(err, show) {
     if (err) return next(err);
     show.subscribers.push(req.user.id);
     User.findById(req.user.id, function(err,user) {
       if (err) return next(err);
-      user.showsSubscribed.push({showId:show.id, toEmail:false, daysBefore:0, hoursBefore:0});
+      user.showsSubscribed.push({showId:show.id, toEmail:false, emailDay:0, emailHour:0});
       user.save(function(err) {
         if (err) return next (err);
         res.send(200);

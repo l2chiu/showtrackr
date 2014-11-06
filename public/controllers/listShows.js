@@ -73,16 +73,25 @@ angular.module('MyApp')
 
         $scope.setNextEpisode = function() {
             $scope.recentEps = $scope.show.episodes.filter(function(episode) {
-                var date = new Date(episode.firstAired);
+                var theDate = new Date(episode.firstAired);
+                var date = new Date(theDate.getTime() + theDate.getTimezoneOffset() * 60000)
+
+                var hour = Number($scope.show.airsTime.split(":")[0]);
+                var minute = Number($scope.show.airsTime.split(":")[1].split(" ")[0]);
+                var pm = $scope.show.airsTime.split(" ")[1];
+
+                if(pm==="pm" || pm === "PM")
+                {
+                    hour +=12;
+                }
+
+                date.setHours(hour);
+                date.setMinutes(minute);
+
                 var date2 = new Date();
-                date2.setDate(date2.getDate());
-                return date > date2;
+                return date > date2 ;
             });
-            //do two searches...look for first episode closest to today
-            //do search, look for last episode that is before today
-
-            //$scope.prevEps = $scope.recentEps[0];
-
+            
             $scope.nextEps = $scope.recentEps[0];
             $scope.nextNextEps = $scope.recentEps[1];
             var indexShow = $scope.show.episodes.indexOf($scope.nextEps);
@@ -158,14 +167,7 @@ angular.module('MyApp')
                 skip = 1;
             }
             alert("Time to alert before now, alert next week. "+alertDate);
-            /*
-            EmailSubscription.subscribe($scope.show._id,alertDayNumber,alertHourNumber).success(function() {
-                //$scope.show.subscribers.push($rootScope.currentUser._id);
-                var showSubscribed = lodash.find($rootScope.currentUser.showsSubscribed, { 'showId': $scope.show._id });
-                showSubscribed.toEmail = true;
-                showSubscribed.emailDay = alertDayNumber;
-                showSubscribed.emailHour = alertHourNumber;
-            });*/
+
         };
 
         $scope.dontEmail = function (idx) {

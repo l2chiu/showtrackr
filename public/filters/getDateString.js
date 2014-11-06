@@ -4,8 +4,8 @@
 angular.module('MyApp').
     filter('getDateString', function () {
         return function(date,airsTime) {
-            var now = new Date(date);
-            date = new Date(now.getTime() + (now.getTimezoneOffset() * 60000));
+            var theDate = new Date(date);
+            date = new Date(theDate.getTime() + (theDate.getTimezoneOffset() * 60000));
 
             var hour = Number(airsTime.split(":")[0]);
             var minute = Number(airsTime.split(":")[1].split(" ")[0]);
