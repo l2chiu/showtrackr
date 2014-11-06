@@ -230,9 +230,38 @@ app.post('/api/emailSubscribe', ensureAuthenticated, function(req, res, next) {
     showSubscribed.emailHour = req.body.emailHour;
     showSubscribed.save();
 
+    /*
     console.log(showSubscribed.toEmail);
     console.log(showSubscribed.emailHour);
     console.log(showSubscribed.emailDay);
+    */
+
+    user.save(function(err) {
+      if(err) return next(err);
+      res.send(200);
+    });
+  });
+
+});
+
+
+
+app.post('/api/emailUnsubscribe', ensureAuthenticated, function(req, res, next) {
+  User.findById(req.user.id, function (err,user) {
+    if (err) return next(err);
+    console.log(req.body.showId);
+
+    var showSubscribed = lodash.find(user.showsSubscribed, { 'showId': req.body.showId });
+    showSubscribed.toEmail = false;
+    showSubscribed.emailDay = 0;
+    showSubscribed.emailHour = 0;
+    showSubscribed.save();
+
+    /*
+    console.log(showSubscribed.toEmail);
+    console.log(showSubscribed.emailHour);
+    console.log(showSubscribed.emailDay);
+    */
 
     user.save(function(err) {
       if(err) return next(err);

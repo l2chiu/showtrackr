@@ -168,15 +168,32 @@ angular.module('MyApp')
             $scope.showDontEmail[idx] = false;
             $scope.showEmailButton[idx] = true;
             $scope.showEmailMessage[idx] = false;
+            EmailSubscription.emailUnsubscribe($scope.filteredShows[idx]._id)
+                .success(function() {
+                    var showSubscribed = lodash.find($rootScope.currentUser.showsSubscribed, { 'showId': $scope.filteredShows[idx]._id });
+                    showSubscribed.toEmail = false;
+                    showSubscribed.emailDay = 0;
+                    showSubscribed.emailHour = 0;
+                });
+
             //implement code with DB
         };
 
         $scope.shouldEmail = function(idx) {
             //return $scope.showDontEmail[idx];
+
             return lodash.find($rootScope.currentUser.showsSubscribed, { 'showId': $scope.show._id }).toEmail;
-            //implement code with DB, problem with index using currentShow
         };
 
+        $scope.emailDay = function(idx) {
+            //return $scope.showDontEmail[idx];
+            return $scope.days[lodash.find($rootScope.currentUser.showsSubscribed, { 'showId': $scope.show._id }).emailDay].label;
+        };
+
+        $scope.emailHour = function(idx) {
+            //return $scope.showDontEmail[idx];
+            return $scope.times[lodash.find($rootScope.currentUser.showsSubscribed, { 'showId': $scope.show._id }).emailHour].label;
+        };
 
         /*
          $scope.days = [

@@ -79,7 +79,7 @@
                   </button>
                 </div>
               </form>
-              <div ng-show="showEmailMessage[$index] || shouldEmail(index)">Will send reminder email every <b>{{ chosenDay[$index].label }}</b> at <b>{{ chosenTime[$index].label }}</b> before each episode.
+              <div ng-show="showEmailMessage[$index] || shouldEmail($index)">Will send reminder email every <b>{{ emailDay($index) }}</b> at <b>{{ emailHour($index) }}</b> before each episode.
               </div>
 
             </div>
