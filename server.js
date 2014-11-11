@@ -26,6 +26,8 @@ var nodemailer = require('nodemailer');
 
 var compress = require('compression');
 
+var JOB_SEND_EMAIL_WEEKLY = 'Send Email Weekly'
+
 
 var showSchema = new mongoose.Schema({
   _id: Number,
@@ -139,12 +141,25 @@ function ensureAuthenticated(req, res, next) {
   else res.send(401);
 }
 
-agenda.define('Send Email Alert', function(job, done) {
-  User.findOne({
 
-  });
-});
+function getDateString(date,airsTime)
+{
+  var theDate = new Date(date);
+  date = new Date(theDate.getTime() + (theDate.getTimezoneOffset() * 60000));
 
+  var hour = Number(airsTime.split(":")[0]);
+  var minute = Number(airsTime.split(":")[1].split(" ")[0]);
+  var pm = airsTime.split(" ")[1];
+
+  if(pm==="pm" || pm === "PM")
+  {
+    hour +=12;
+  }
+  date.setHours(hour);
+  date.setMinutes(minute);
+
+  return date;
+}
 
 
 agenda.define('send email alert', function(job, done) {
@@ -213,10 +228,6 @@ app.get('/api/logout', function(req, res, next) {
 });
 
 
-
-
-
-
 app.post('/api/emailSubscribe', ensureAuthenticated, function(req, res, next) {
   User.findById(req.user.id, function (err,user) {
     if (err) return next(err);
@@ -230,20 +241,124 @@ app.post('/api/emailSubscribe', ensureAuthenticated, function(req, res, next) {
     showSubscribed.emailHour = req.body.emailHour;
     showSubscribed.save();
 
-    /*
-    console.log(showSubscribed.toEmail);
-    console.log(showSubscribed.emailHour);
-    console.log(showSubscribed.emailDay);
-    */
-
     user.save(function(err) {
       if(err) return next(err);
       res.send(200);
     });
+
+
+    Show.findById(req.body.showId, function(err, show) {
+      var recentEpisodes = show.episodes.filter(function(episode) {
+        var date = getDateString(episode.firstAired,show.airsTime);
+        var date2 = new Date();
+        return date > date2 ;
+      });
+
+      var now = new Date();
+      now = new Date(now.getTime() + (now.getTimezoneOffset() *60000));
+      var nowDayNumber = now.getDay();
+      var nowHourNumber = now.getHours();
+      var alertDayNumber = req.body.emailDay;
+      var alertHourNumber = req.body.emailHour;
+      //Sunday =0, Wednesday = 3
+      if (nowDayNumber > alertDayNumber)
+      {
+        alertDayNumber += 7;
+      }
+      var diffDayNumber = alertDayNumber - nowDayNumber;
+      var nextAlertDate = now.setDate(now.getDate() + diffDayNumber);
+      nextAlertDate.setHours(alertHourNumber);
+
+      agenda.schedule(nextAlertDate,JOB_SEND_EMAIL_WEEKLY, {showId:req.body.showId, userId:req.user.id}).repeatEvery('1 week');
+      /*
+      var airDate = getDateString(recentEpisodes[0].firstAired,show.airsTime);
+      var airDayNumber = airDate.getDay();
+      var airHourNumber = airDate.getHours();
+      var carryDay = 0;
+      var skip = 0;
+
+      if(alertHourNumber > airHourNumber)
+      {
+        carryDay = 1;
+        if(alertDayNumber === airDayNumber)
+        {   airDayNumber +=7;
+        }
+      }
+
+      //To do property difference correctly, make sure airDay is bigger by adding 7
+      if (alertDayNumber > airDayNumber)
+      {
+        airDayNumber += 7;
+      }
+      var diffDayNumber = airDayNumber - alertDayNumber - carryDay;
+      var alertDate = airDate;
+
+      alertDate.setHours(alertHourNumber);
+      alertDate.setDate(alertDate.getDate() - diffDayNumber);
+      alert("Date after logic: "+alertDate);
+      var nextWeek = new Date();
+      nextWeek.setDate(nextweek.getDate()+7);
+
+      //if alert date is a greater than next week, don't send email this week. Check again next week.
+      if(alertDate > nextWeek)
+      {
+
+      }
+      //Do not send email this week if the alertDate > now. Check again next week.
+      else if (alertDate < now)
+      {
+
+      }
+      //set up job and alert
+      else if (alertDate > now)
+      {
+
+      }
+      alert("Time to alert before now, alert next week. "+alertDate);
+
+      */
+      //agenda.schedule(nextAirDate, JOB_SEND_EMAIL_WEEKLY, show.name).repeatEvery('1 week');
+    });
+
   });
 
 });
 
+
+/*
+
+ //FIX AIR DATE
+ var airDate = $scope.nextDate[idx];
+ var airDayNumber = airDate.getDay();
+ var airHourNumber = airDate.getHours();
+ var carryDay = 0;
+ var skip = 0;
+
+ if(alertHourNumber > airHourNumber)
+ {
+ carryDay = 1;
+ if(alertDayNumber === airDayNumber)
+ {   airDayNumber +=7;
+ }
+ }
+
+ //To do property difference correctly, make sure airDay is bigger by adding 7
+ if (alertDayNumber > airDayNumber)
+ {
+ airDayNumber += 7;
+ }
+ var diffDayNumber = airDayNumber - alertDayNumber - carryDay;
+ var alertDate = airDate;
+ alertDate.setHours(alertHourNumber);
+ alertDate.setDate(alertDate.getDate() - diffDayNumber);
+ alert("Date after compilation "+alertDate);
+ if (alertDate < new Date())
+ {
+ alertDate.setDate(alertDate.getDate()+7);
+ skip = 1;
+ }
+ alert("Time to alert before now, alert next week. "+alertDate);
+ */
 
 
 app.post('/api/emailUnsubscribe', ensureAuthenticated, function(req, res, next) {
@@ -324,14 +439,6 @@ app.get('/api/listShows', ensureAuthenticated, function(req, res,next) {
 
 });
 
-function getShow(showId,next) {
-
-  Show.findById(showId, function(err, show) {
-          if (err) return next(err);
-          return show;
-  });
-
-}
 
 app.get('/api/shows', function(req, res, next) {
   var query = Show.find();
